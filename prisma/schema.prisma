@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String            @id @default(uuid())
+  name      String
+  email     String            @unique
+  password  String
+  role      Role              @default(VIEWER)
+  status    Status            @default(ACTIVE)
+  records   FinancialRecord[]
+  auditLogs AuditLog[]
+  createdAt DateTime          @default(now())
+}
+
+model FinancialRecord {
+  id        String     @id @default(uuid())
+  amount    Float
+  type      RecordType
+  category  String
+  date      DateTime
+  notes     String?
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  deletedAt DateTime?
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  action    String
+  entity    String
+  entityId  String
+  changes   Json?
+  createdAt DateTime @default(now())
+}
+
+enum Role {
+  VIEWER
+  ANALYST
+  ADMIN
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum RecordType {
+  INCOME
+  EXPENSE
+}
